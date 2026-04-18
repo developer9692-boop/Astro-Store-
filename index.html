@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Astro Store — Digital Services</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* =============================================
+       CSS VARIABLES — Edit colors here easily
+    ============================================= */
+    :root {
+      --bg-dark:     #040810;
+      --bg-card:     #080f1e;
+      --bg-panel:    #0b1428;
+      --neon-cyan:   #00f5ff;
+      --neon-purple: #bf00ff;
+      --neon-pink:   #ff0080;
+      --neon-green:  #00ff88;
+      --text-main:   #e8f4ff;
+      --text-muted:  #6a8aaa;
+      --border:      rgba(0,245,255,0.15);
+      --glow-cyan:   0 0 20px rgba(0,245,255,0.4);
+      --glow-purple: 0 0 20px rgba(191,0,255,0.4);
+      --glow-pink:   0 0 20px rgba(255,0,128,0.4);
+    }
+
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    /* Animated star background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(0,245,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 10%, rgba(191,0,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 80%, rgba(255,0,128,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 60%, rgba(0,245,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 70%, rgba(0,255,136,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 50%, white 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 40%, white 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 15%, white 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 55%, white 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 85%, white 0%, transparent 100%);
+      background-size: 400px 400px;
+      animation: starfield 40s linear infinite;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes starfield {
+      from { background-position: 0 0; }
+      to   { background-position: 400px 400px; }
+    }
+
+    /* =============================================
+       NAVIGATION
+    ============================================= */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(4,8,16,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Logo */
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.5rem;
+      letter-spacing: 0.1em;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+      text-decoration: none;
+    }
+    .logo span { color: var(--neon-purple); text-shadow: var(--glow-purple); }
+
+    /* Nav links */
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+    .nav-links a:hover {
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+    }
+
+    /* Hamburger (mobile) */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 26px;
+      height: 2px;
+      background: var(--neon-cyan);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    /* Mobile nav open state */
+    .nav-links.open {
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 65px; left: 0; right: 0;
+      background: rgba(4,8,16,0.97);
+      padding: 2rem;
+      gap: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* =============================================
+       HERO SECTION
+    ============================================= */
+    #home {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-inner { max-width: 800px; }
+
+    .hero-badge {
+      display: inline-block;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--neon-green);
+      border: 1px solid var(--neon-green);
+      padding: 0.35rem 1rem;
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 0 12px rgba(0,255,136,0.3);
+      animation: fadeInDown 0.8s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      line-height: 1.05;
+      animation: fadeInUp 0.9s 0.2s ease both;
+    }
+    .hero-title .line1 { color: var(--text-main); }
+    .hero-title .line2 {
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      margin-top: 1.5rem;
+      font-size: 1.2rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      line-height: 1.6;
+      animation: fadeInUp 1s 0.4s ease both;
+    }
+
+    .hero-cta {
+      margin-top: 2.5rem;
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 1s 0.6s ease both;
+    }
+
+    /* =============================================
+       BUTTONS
+    ============================================= */
+    .btn-primary {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.85rem 2rem;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+      color: #000;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0,245,255,0.5), 0 0 60px rgba(191,0,255,0.3);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-outline {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.85rem 2rem;
+      border: 1px solid var(--neon-cyan);
+      border-radius: 3px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--neon-cyan);
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-outline:hover {
+      background: rgba(0,245,255,0.1);
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       SECTION SHARED
+    ============================================= */
+    section { position: relative; z-index: 1; }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+    .section-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--neon-purple);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .section-title .accent {
+      background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* =============================================
+       STATS BAR
+    ============================================= */
+    .stats-bar {
+      padding: 2rem;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .stats-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .stat-item { text-align: center; }
+    .stat-number {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+    }
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+    }
+
+    /* =============================================
+       SERVICES SECTION
+    ============================================= */
+    #services {
+      padding: 6rem 2rem;
+    }
+
+    .services-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Service card */
+    .service-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.35s, border-color 0.35s, box-shadow 0.35s;
+      display: flex;
+      flex-direction: column;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)));
+      opacity: 0;
+      transition: opacity 0.35s;
+    }
+    .service-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(0,245,255,0.35);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 30px var(--card-glow, rgba(0,245,255,0.15));
+    }
+    .service-card:hover::before { opacity: 1; }
+
+    /* Card accent colors per service */
+    .card-instagram { --card-accent: linear-gradient(90deg,#f58529,#dd2a7b,#8134af); --card-glow: rgba(221,42,123,0.2); }
+    .card-telegram  { --card-accent: linear-gradient(90deg,#0088cc,#00b4e4); --card-glow: rgba(0,136,204,0.2); }
+    .card-youtube   { --card-accent: linear-gradient(90deg,#ff0000,#ff4e45); --card-glow: rgba(255,0,0,0.2); }
+    .card-whatsapp  { --card-accent: linear-gradient(90deg,#25d366,#128c7e); --card-glow: rgba(37,211,102,0.2); }
+    .card-modapk    { --card-accent: linear-gradient(90deg,var(--neon-purple),var(--neon-pink)); --card-glow: rgba(191,0,255,0.2); }
+
+    .card-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1.2rem;
+      filter: drop-shadow(0 0 8px rgba(0,245,255,0.4));
+    }
+    .card-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+    .card-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+
+    .card-features {
+      margin: 1rem 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .card-features li {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card-features li::before {
+      content: '▶';
+      color: var(--neon-cyan);
+      font-size: 0.5rem;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+    .card-price {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+    }
+    .card-price span { font-size: 0.8rem; font-weight: 400; color: var(--text-muted); }
+
+    .btn-buy {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.6rem 1.2rem;
+      border: 1px solid var(--neon-cyan);
+      border-radius: 3px;
+      background: transparent;
+      color: var(--neon-cyan);
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn-buy:hover {
+      background: var(--neon-cyan);
+      color: #000;
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* =============================================
+       ORDER MODAL
+    ============================================= */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(4,8,16,0.92);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 540px;
+      position: relative;
+      animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(30px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1.2rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.8rem;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--neon-pink); }
+
+    .modal-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+      margin-bottom: 0.4rem;
+    }
+    .modal-subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
+
+    /* Form styles */
+    .form-group {
+      margin-bottom: 1.2rem;
+    }
+    .form-group label {
+      display: block;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.75rem 1rem;
+      color: var(--text-main);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 0 2px rgba(0,245,255,0.15);
+    }
+    .form-group select option { background: var(--bg-panel); }
+    .form-group textarea { resize: vertical; min-height: 90px; }
+
+    .form-submit {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    /* QR Payment Step */
+    .qr-step {
+      display: none;
+      text-align: center;
+      padding: 0.5rem 0;
+    }
+    .qr-step.active { display: block; }
+    .qr-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--neon-green);
+      margin-bottom: 0.5rem;
+    }
+    .qr-amount {
+      font-family: 'Orbitron', monospace;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+      margin-bottom: 1rem;
+    }
+    .qr-box {
+      display: inline-block;
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 0 30px rgba(0,245,255,0.3), 0 0 60px rgba(191,0,255,0.15);
+      border: 2px solid var(--neon-cyan);
+      margin-bottom: 1rem;
+    }
+    .qr-box img {
+      width: 200px;
+      height: 200px;
+      display: block;
+      border-radius: 4px;
+    }
+    .qr-instruction {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.2rem;
+    }
+    .qr-instruction strong { color: var(--neon-yellow, #ffe600); }
+    .qr-nav {
+      display: flex;
+      gap: 0.8rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Success message */
+    .success-msg {
+      display: none;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .success-msg .check { font-size: 3.5rem; margin-bottom: 1rem; }
+    .success-msg h3 {
+      font-family: 'Orbitron', monospace;
+      color: var(--neon-green);
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .success-msg p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* =============================================
+       CONTACT SECTION
+    ============================================= */
+    #contact {
+      padding: 6rem 2rem;
+      background: var(--bg-panel);
+      border-top: 1px solid var(--border);
+    }
+
+    .contact-wrapper {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .contact-channels {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.2rem;
+      margin-top: 2.5rem;
+    }
+    .channel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.3s;
+      text-decoration: none;
+    }
+    .channel-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--neon-cyan);
+      box-shadow: var(--glow-cyan);
+    }
+    .channel-icon { font-size: 1.8rem; }
+    .channel-info { text-align: left; }
+    .channel-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--neon-cyan);
+    }
+    .channel-handle { font-size: 0.9rem; color: var(--text-muted); margin-top: 0.1rem; }
+
+    /* =============================================
+       FOOTER
+    ============================================= */
+    footer {
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: rgba(4,8,16,0.95);
+    }
+    .footer-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+      margin-bottom: 0.5rem;
+    }
+    .footer-logo span { color: var(--neon-purple); }
+    footer p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    footer .admin-link {
+      display: inline-block;
+      margin-top: 0.8rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      color: rgba(255,255,255,0.1);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    footer .admin-link:hover { color: var(--text-muted); }
+
+    /* =============================================
+       ANIMATIONS
+    ============================================= */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scroll reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links:not(.open) { display: none; }
+      .hamburger { display: flex; }
+      .services-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; align-items: center; }
+      .modal { padding: 1.8rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =============================================
+     NAVIGATION
+============================================= -->
+<nav id="navbar">
+  <a href="#home" class="logo">Astro<span>Store</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#home" onclick="closeMenu()">Home</a></li>
+    <li><a href="#services" onclick="closeMenu()">Services</a></li>
+    <li><a href="#contact" onclick="closeMenu()">Contact</a></li>
+  </ul>
+  <button class="hamburger" id="hamburger" aria-label="Toggle menu" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- =============================================
+     HERO SECTION
+============================================= -->
+<section id="home">
+  <div class="hero-inner">
+    <div class="hero-badge">⚡ Instant Delivery · Trusted Provider</div>
+    <h1 class="hero-title">
+      <div class="line1">DIGITAL SERVICES</div>
+      <div class="line2">REDEFINED</div>
+    </h1>
+    <p class="hero-sub">
+      Premium social media accounts, verified profiles &amp; mod APKs.<br/>
+      Fast delivery. Reliable support. Zero hassle.
+    </p>
+    <div class="hero-cta">
+      <a href="#services" class="btn-primary">Explore Services</a>
+      <a href="#contact" class="btn-outline">Get Support</a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Bar -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-number">5K+</div>
+      <div class="stat-label">Happy Clients</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">24/7</div>
+      <div class="stat-label">Support</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">99%</div>
+      <div class="stat-label">Success Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">50+</div>
+      <div class="stat-label">Countries</div>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================
+     SERVICES SECTION
+============================================= -->
+<section id="services">
+  <div class="section-header reveal">
+    <div class="section-label">// What We Offer</div>
+    <h2 class="section-title">Our <span class="accent">Services</span></h2>
+  </div>
+
+  <div class="services-grid">
+
+    <!-- Instagram -->
+    <div class="service-card card-instagram reveal">
+      <div class="card-icon">📸</div>
+      <div class="card-title">Instagram Account</div>
+      <p class="card-desc">Aged, verified Instagram accounts with real followers. Perfect for influencer kickstart.</p>
+      <ul class="card-features">
+        <li>1,000 Real Followers Included</li>
+        <li>Aged &amp; Verified Profile</li>
+        <li>Instant Delivery</li>
+        <li>Full Account Access</li>
+      </ul>
+      <div class="card-footer">
+        <div class="card-price">₹50 <span>/ account</span></div>
+        <button class="btn-buy" onclick="openOrder('Instagram Account (1K Followers)', '₹50')">Buy Now</button>
+      </div>
+    </div>
+
+    <!-- Telegram -->
+    <div class="service-card card-telegram reveal">
+      <div class="card-icon">✈️</div>
+      <div class="card-title">Telegram Account</div>
+      <p class="card-desc">Fresh and aged Telegram accounts for personal or business use. Any region available.</p>
+      <ul class="card-features">
+        <li>Verified Phone Number</li>
+        <li>Any Country Region</li>
+        <li>Aged Accounts Available</li>
+        <li>Fast Delivery</li>
+      </ul>
+      <div class="card-footer">
+        <div class="card-price">₹100 <span>/ account</span></div>
+        <button class="btn-buy" onclick="openOrder('Telegram Account', '₹100')">Buy Now</button>
+      </div>
+    </div>
+
+    <!-- YouTube -->
+    <div class="service-card card-youtube reveal">
+      <div class="card-icon">▶️</div>
+      <div class="card-title">YouTube Account</div>
+      <p class="card-desc">Monetization-ready YouTube channels with 1K subscribers to kickstart your creator journey.</p>
+      <ul class="card-features">
+        <li>1,000 Subscribers Included</li>
+        <li>Monetization Eligible</li>
+        <li>Clean History</li>
+        <li>Full Channel Access</li>
+      </ul>
+      <div class="card-footer">
+        <div class="card-price">₹120 <span>/ channel</span></div>
+        <button class="btn-buy" onclick="openOrder('YouTube Account (1K Subscribers)', '₹120')">Buy Now</button>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="service-card card-whatsapp reveal">
+      <div class="card-icon">💬</div>
+      <div class="card-title">WhatsApp Account</div>
+      <p class="card-desc">Real SIM-verified WhatsApp accounts from any country. Ideal for business or personal use.</p>
+      <ul class="card-features">
+        <li>Any Country Number</li>
+        <li>Real SIM Verified</li>
+        <li>Business/Personal Use</li>
+        <li>Aged Accounts Available</li>
+      </ul>
+      <div class="card-footer">
+        <div class="card-price">₹50 <span>/ account</span></div>
+        <button class="btn-buy" onclick="openOrder('WhatsApp Account (Any Country)', '₹50')">Buy Now</button>
+      </div>
+    </div>
+
+    <!-- Mod APKs -->
+    <div class="service-card card-modapk reveal">
+      <div class="card-icon">📱</div>
+      <div class="card-title">Mod APK Downloads</div>
+      <p class="card-desc">Premium-unlocked mod APKs for popular apps and games. Safe, tested, and always updated.</p>
+      <ul class="card-features">
+        <li>Premium Features Unlocked</li>
+        <li>Virus Scanned &amp; Safe</li>
+        <li>Regular Updates</li>
+        <li>All Popular Apps &amp; Games</li>
+      </ul>
+      <div class="card-footer">
+        <div class="card-price">₹15 <span>/ mod</span></div>
+        <button class="btn-buy" onclick="openOrder('Mod APK Download', '₹15')">Buy Now</button>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- =============================================
+     CONTACT SECTION
+============================================= -->
+<section id="contact">
+  <div class="contact-wrapper">
+    <div class="section-header reveal">
+      <div class="section-label">// Reach Us</div>
+      <h2 class="section-title">Get In <span class="accent">Touch</span></h2>
+    </div>
+    <p style="color:var(--text-muted);font-size:1rem;line-height:1.7;" class="reveal">
+      Have questions before ordering? Reach out through any channel below.<br/>
+      Our team responds within minutes.
+    </p>
+    <div class="contact-channels reveal">
+      <a href="https://t.me/AstroStore" target="_blank" class="channel-card">
+        <div class="channel-icon">✈️</div>
+        <div class="channel-info">
+          <div class="channel-name">Telegram</div>
+          <div class="channel-handle">@AstroStore</div>
+        </div>
+      </a>
+      <a href="https://wa.me/1234567890" target="_blank" class="channel-card">
+        <div class="channel-icon">💬</div>
+        <div class="channel-info">
+          <div class="channel-name">WhatsApp</div>
+          <div class="channel-handle">+1 (234) 567-890</div>
+        </div>
+      </a>
+      <a href="mailto:support@astrostore.com" class="channel-card">
+        <div class="channel-icon">📧</div>
+        <div class="channel-info">
+          <div class="channel-name">Email</div>
+          <div class="channel-handle">support@astrostore.com</div>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- =============================================
+     FOOTER
+============================================= -->
+<footer>
+  <div class="footer-logo">Astro<span>Store</span></div>
+  <p>© Astro Provider — All rights reserved.</p>
+  <a href="admin.html" class="admin-link">[ ADMIN ]</a>
+</footer>
+
+<!-- =============================================
+     ORDER MODAL
+============================================= -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+    <button class="modal-close" onclick="closeOrder()" aria-label="Close">&times;</button>
+
+    <!-- STEP 1: Order Form -->
+    <div id="formView">
+      <div class="modal-title">🚀 Place Your Order</div>
+      <div class="modal-subtitle" id="modalSubtitle">Complete the form below and we'll get back to you shortly.</div>
+
+      <!--
+        FormSubmit Integration:
+        Replace YOUR_EMAIL with your actual email address.
+        FormSubmit will send order details directly to that email — no backend needed.
+      -->
+      <form
+        action="https://formsubmit.co/YOUR_EMAIL@gmail.com"
+        method="POST"
+        id="orderForm"
+        onsubmit="handleSubmit(event)"
+      >
+        <!-- Honeypot (anti-spam) -->
+        <input type="text" name="_honey" style="display:none"/>
+        <!-- Disable FormSubmit captcha (optional) -->
+        <input type="hidden" name="_captcha" value="false"/>
+        <!-- Redirect to same page after submit -->
+        <input type="hidden" name="_next" value="javascript:void(0)"/>
+
+        <div class="form-group">
+          <label for="fname">Your Name *</label>
+          <input type="text" id="fname" name="name" placeholder="John Doe" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="femail">Email Address *</label>
+          <input type="email" id="femail" name="email" placeholder="you@example.com" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="fwhatsapp">WhatsApp Number *</label>
+          <input type="tel" id="fwhatsapp" name="whatsapp" placeholder="+91 98765 43210" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="fservice">Selected Service *</label>
+          <select id="fservice" name="service" required>
+            <option value="" disabled selected>Choose a service...</option>
+            <option>Instagram Account (1K Followers) — ₹50</option>
+            <option>Telegram Account — ₹100</option>
+            <option>YouTube Account (1K Subscribers) — ₹120</option>
+            <option>WhatsApp Account (Any Country) — ₹50</option>
+            <option>Mod APK Download — ₹15</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="fnotes">Additional Notes</label>
+          <textarea id="fnotes" name="notes" placeholder="Any specific requirements, country preference, etc..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary form-submit">⚡ Proceed to Payment</button>
+      </form>
+    </div>
+
+    <!-- STEP 2: QR Code Payment -->
+    <div id="qrView" class="qr-step">
+      <div class="modal-title">💳 Scan &amp; Pay</div>
+      <div class="qr-label">// UPI Payment</div>
+      <div class="qr-amount" id="qrAmount">₹50</div>
+      <div class="qr-box">
+        <img
+          src="https://raw.githubusercontent.com/developer9692-boop/Payment/main/br.png"
+          alt="UPI QR Code"
+          onerror="this.alt='QR code could not load. Please contact support.'"
+        />
+      </div>
+      <p class="qr-instruction">
+        Scan using any UPI app (GPay, PhonePe, Paytm).<br/>
+        Pay exactly <strong id="qrAmountInline">₹50</strong> and then click <strong style="color:var(--neon-cyan)">"I've Paid"</strong> below.
+      </p>
+      <div class="qr-nav">
+        <button class="btn-outline" onclick="goBackToForm()">← Go Back</button>
+        <button class="btn-primary" onclick="confirmPayment()">✅ I've Paid</button>
+      </div>
+    </div>
+
+    <!-- Success view (shown after local submission simulation) -->
+    <div class="success-msg" id="successView">
+      <div class="check">✅</div>
+      <h3>Order Received!</h3>
+      <p>Your order has been submitted successfully.<br/>We'll contact you via WhatsApp or Email within <strong>30 minutes</strong>.</p>
+      <br/>
+      <button class="btn-outline" onclick="closeOrder()" style="margin-top:1rem">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- =============================================
+     JAVASCRIPT
+============================================= -->
+<script>
+  /* ---------- Mobile Navigation ---------- */
+  function toggleMenu() {
+    document.getElementById('navLinks').classList.toggle('open');
+  }
+  function closeMenu() {
+    document.getElementById('navLinks').classList.remove('open');
+  }
+
+  /* ---------- Price map (INR) ---------- */
+  const priceMap = {
+    'Instagram Account (1K Followers)': '₹50',
+    'Telegram Account':                 '₹100',
+    'YouTube Account (1K Subscribers)': '₹120',
+    'WhatsApp Account (Any Country)':   '₹50',
+    'Mod APK Download':                 '₹15'
+  };
+
+  /* ---------- Order Modal ---------- */
+  // Open modal and pre-select the service
+  function openOrder(service, price) {
+    const overlay = document.getElementById('modalOverlay');
+    const subtitle = document.getElementById('modalSubtitle');
+    const select   = document.getElementById('fservice');
+
+    // Pre-select the service in the dropdown
+    for (let i = 0; i < select.options.length; i++) {
+      if (select.options[i].text.startsWith(service)) {
+        select.selectedIndex = i;
+        break;
+      }
+    }
+
+    subtitle.textContent = `Selected: ${service} — ${price}`;
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Always start on Step 1
+    showStep('form');
+  }
+
+  function closeOrder() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // Close when clicking the backdrop
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeOrder();
+  }
+
+  /* ---------- Step navigation ---------- */
+  function showStep(step) {
+    document.getElementById('formView').style.display    = step === 'form'    ? '' : 'none';
+    document.getElementById('qrView').style.display      = step === 'qr'      ? 'block' : 'none';
+    document.getElementById('successView').style.display = step === 'success' ? 'block' : 'none';
+  }
+
+  function goBackToForm() {
+    showStep('form');
+  }
+
+  function confirmPayment() {
+    // Save pending order to localStorage (already saved on form submit)
+    showStep('success');
+  }
+
+  /* ---------- Form Submission → show QR ----------
+     Flow:
+     1. User fills form → clicks "Proceed to Payment"
+     2. Order saved to localStorage + emailed via FormSubmit
+     3. QR code shown with exact INR amount
+     4. User clicks "I've Paid" → success screen
+  -------------------------------------------------- */
+  function handleSubmit(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('orderForm');
+
+    // Determine the price from the selected service
+    const serviceVal = form.service.value;
+    const serviceName = serviceVal.split('—')[0].trim();
+    const amount = priceMap[serviceName] || '₹0';
+
+    const data = {
+      id:       Date.now(),
+      date:     new Date().toLocaleString(),
+      name:     form.name.value,
+      email:    form.email.value,
+      whatsapp: form.whatsapp.value,
+      service:  serviceVal,
+      notes:    form.notes.value,
+      status:   'Pending'
+    };
+
+    // Save to localStorage for admin panel
+    const orders = JSON.parse(localStorage.getItem('astro_orders') || '[]');
+    orders.unshift(data);
+    localStorage.setItem('astro_orders', JSON.stringify(orders));
+
+    // Submit to FormSubmit in background (email notification)
+    const formData = new FormData(form);
+    fetch(form.action, { method: 'POST', body: formData }).catch(() => {});
+
+    // Update QR screen with correct amount
+    document.getElementById('qrAmount').textContent       = amount;
+    document.getElementById('qrAmountInline').textContent = amount;
+
+    // Show QR payment step
+    showStep('qr');
+
+    form.reset();
+  }
+
+  /* ---------- Scroll Reveal ---------- */
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  /* ---------- Keyboard: close modal on Escape ---------- */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeOrder();
+  });
+</script>
+
+</body>
+</html>

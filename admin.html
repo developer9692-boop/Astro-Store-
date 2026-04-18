@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — Astro Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* =============================================
+       CSS VARIABLES
+    ============================================= */
+    :root {
+      --bg-dark:     #040810;
+      --bg-card:     #080f1e;
+      --bg-panel:    #0b1428;
+      --bg-sidebar:  #060d1a;
+      --neon-cyan:   #00f5ff;
+      --neon-purple: #bf00ff;
+      --neon-pink:   #ff0080;
+      --neon-green:  #00ff88;
+      --neon-yellow: #ffe600;
+      --text-main:   #e8f4ff;
+      --text-muted:  #6a8aaa;
+      --border:      rgba(0,245,255,0.12);
+      --glow-cyan:   0 0 18px rgba(0,245,255,0.35);
+      --glow-green:  0 0 18px rgba(0,255,136,0.35);
+    }
+
+    /* =============================================
+       RESET & BASE
+    ============================================= */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* =============================================
+       LAYOUT: SIDEBAR + MAIN
+    ============================================= */
+    .layout {
+      display: flex;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =============================================
+       SIDEBAR
+    ============================================= */
+    .sidebar {
+      width: 240px;
+      min-height: 100vh;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.8rem 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      overflow-y: auto;
+      z-index: 10;
+      transition: transform 0.3s;
+    }
+
+    .sidebar-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: var(--neon-cyan);
+      text-shadow: var(--glow-cyan);
+      padding: 0 1.5rem 1.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-logo span { color: var(--neon-purple); }
+    .sidebar-logo small {
+      display: block;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      text-transform: uppercase;
+    }
+
+    .sidebar-nav {
+      margin-top: 1.5rem;
+      list-style: none;
+      flex-grow: 1;
+    }
+    .sidebar-nav li a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.75rem 1.5rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all 0.25s;
+      border-left: 2px solid transparent;
+    }
+    .sidebar-nav li a:hover,
+    .sidebar-nav li a.active {
+      color: var(--neon-cyan);
+      background: rgba(0,245,255,0.05);
+      border-left-color: var(--neon-cyan);
+    }
+    .sidebar-nav .icon { font-size: 1rem; width: 1.2rem; text-align: center; }
+
+    .sidebar-footer {
+      padding: 1.2rem 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-footer a {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: color 0.3s;
+    }
+    .sidebar-footer a:hover { color: var(--neon-cyan); }
+
+    /* =============================================
+       MAIN CONTENT
+    ============================================= */
+    .main {
+      margin-left: 240px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Top bar */
+    .topbar {
+      background: rgba(8,15,30,0.95);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-main);
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .topbar-time {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      background: var(--neon-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--neon-green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.4; }
+    }
+
+    /* Hamburger for mobile */
+    .topbar-ham {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--neon-cyan);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    /* =============================================
+       PAGE CONTENT
+    ============================================= */
+    .content {
+      padding: 2rem;
+      flex: 1;
+    }
+
+    /* =============================================
+       METRICS CARDS
+    ============================================= */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .metric-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--m-color, var(--neon-cyan));
+      opacity: 0.6;
+    }
+    .metric-card:hover {
+      border-color: rgba(0,245,255,0.3);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .metric-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .metric-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--m-color, var(--neon-cyan));
+      text-shadow: 0 0 12px var(--m-color, rgba(0,245,255,0.4));
+    }
+    .metric-label {
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+    .metric-change {
+      font-size: 0.75rem;
+      color: var(--neon-green);
+      margin-top: 0.4rem;
+    }
+
+    /* =============================================
+       ORDERS TABLE
+    ============================================= */
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .panel-header {
+      padding: 1.2rem 1.8rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+    .panel-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--text-main);
+    }
+    .panel-title::before {
+      content: '▐ ';
+      color: var(--neon-cyan);
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+    .btn-sm {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.45rem 0.9rem;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+    .btn-sm.outline {
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+    }
+    .btn-sm.outline:hover {
+      border-color: var(--neon-cyan);
+      color: var(--neon-cyan);
+    }
+    .btn-sm.danger {
+      border: 1px solid rgba(255,0,128,0.3);
+      background: transparent;
+      color: var(--neon-pink);
+    }
+    .btn-sm.danger:hover {
+      background: rgba(255,0,128,0.1);
+      box-shadow: var(--glow-pink, 0 0 12px rgba(255,0,128,0.3));
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 0;
+      margin: 0 1.8rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .filter-tab {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.7rem 1.2rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.25s;
+    }
+    .filter-tab:hover { color: var(--text-main); }
+    .filter-tab.active {
+      color: var(--neon-cyan);
+      border-bottom-color: var(--neon-cyan);
+    }
+
+    /* Table wrapper */
+    .table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr {
+      background: rgba(0,245,255,0.04);
+    }
+    th {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0.9rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 1rem 1.5rem;
+      font-size: 0.95rem;
+      border-bottom: 1px solid rgba(0,245,255,0.05);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,245,255,0.03); }
+
+    /* Badges */
+    .badge {
+      display: inline-block;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.65rem;
+      border-radius: 2px;
+    }
+    .badge-pending  { background: rgba(255,230,0,0.12); color: var(--neon-yellow); border: 1px solid rgba(255,230,0,0.3); }
+    .badge-done     { background: rgba(0,255,136,0.12); color: var(--neon-green);  border: 1px solid rgba(0,255,136,0.3); }
+    .badge-cancel   { background: rgba(255,0,128,0.12); color: var(--neon-pink);   border: 1px solid rgba(255,0,128,0.3); }
+
+    /* Service chip */
+    .service-chip {
+      display: inline-block;
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      background: rgba(0,245,255,0.07);
+      border: 1px solid rgba(0,245,255,0.15);
+      color: var(--neon-cyan);
+      white-space: nowrap;
+    }
+
+    /* Contact info */
+    .contact-info { display: flex; flex-direction: column; gap: 0.15rem; }
+    .contact-info a {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .contact-info a:hover { color: var(--neon-cyan); }
+
+    /* Action buttons in table */
+    .action-btns { display: flex; gap: 0.4rem; }
+    .act-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .act-btn:hover { border-color: var(--neon-cyan); color: var(--neon-cyan); }
+    .act-btn.del:hover { border-color: var(--neon-pink); color: var(--neon-pink); }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    .empty-state p { font-size: 0.85rem; color: var(--text-muted); opacity: 0.6; }
+
+    /* =============================================
+       SEARCH BAR
+    ============================================= */
+    .search-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      transition: border-color 0.3s;
+    }
+    .search-bar:focus-within {
+      border-color: var(--neon-cyan);
+    }
+    .search-bar input {
+      background: none;
+      border: none;
+      outline: none;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      color: var(--text-main);
+      width: 180px;
+    }
+    .search-bar input::placeholder { color: var(--text-muted); }
+    .search-icon { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* =============================================
+       RESPONSIVE
+    ============================================= */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main { margin-left: 0; }
+      .topbar-ham { display: block; }
+      .content { padding: 1.5rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- =============================================
+       SIDEBAR
+  ============================================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      Astro<span>Store</span>
+      <small>Admin Panel</small>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="#" class="active" onclick="showSection('orders')">
+          <span class="icon">📋</span> Orders
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection('stats')">
+          <span class="icon">📊</span> Analytics
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection('services')">
+          <span class="icon">🛒</span> Services
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <a href="index.html">← Back to Store</a>
+    </div>
+  </aside>
+
+  <!-- =============================================
+       MAIN CONTENT
+  ============================================= -->
+  <div class="main">
+
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <button class="topbar-ham" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+        <div class="topbar-title" id="pageTitle">📋 Recent Orders</div>
+      </div>
+      <div class="topbar-right">
+        <div class="status-dot" title="System Online"></div>
+        <div class="topbar-time" id="clockEl">--:--:--</div>
+      </div>
+    </div>
+
+    <div class="content" id="mainContent">
+
+      <!-- =============================================
+           METRICS ROW
+      ============================================= -->
+      <div class="metrics-grid" id="metricsGrid">
+        <div class="metric-card" style="--m-color:var(--neon-cyan)">
+          <div class="metric-icon">📦</div>
+          <div class="metric-value" id="totalOrdersVal">0</div>
+          <div class="metric-label">Total Orders</div>
+          <div class="metric-change" id="metricChange">↑ Updated live</div>
+        </div>
+        <div class="metric-card" style="--m-color:var(--neon-yellow)">
+          <div class="metric-icon">⏳</div>
+          <div class="metric-value" id="pendingVal">0</div>
+          <div class="metric-label">Pending</div>
+        </div>
+        <div class="metric-card" style="--m-color:var(--neon-green)">
+          <div class="metric-icon">✅</div>
+          <div class="metric-value" id="completedVal">0</div>
+          <div class="metric-label">Completed</div>
+        </div>
+        <div class="metric-card" style="--m-color:var(--neon-purple)">
+          <div class="metric-icon">💰</div>
+          <div class="metric-value" id="revenueVal">$0</div>
+          <div class="metric-label">Est. Revenue</div>
+        </div>
+      </div>
+
+      <!-- =============================================
+           ORDERS PANEL
+      ============================================= -->
+      <div class="panel" id="ordersPanel">
+
+        <div class="panel-header">
+          <div class="panel-title">Recent Orders</div>
+          <div class="panel-actions">
+            <div class="search-bar">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="searchInput" placeholder="Search orders..." oninput="renderTable()"/>
+            </div>
+            <button class="btn-sm outline" onclick="exportCSV()">⬇ Export CSV</button>
+            <button class="btn-sm danger" onclick="clearAll()">🗑 Clear All</button>
+          </div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" onclick="setFilter('All', this)">All</button>
+          <button class="filter-tab" onclick="setFilter('Pending', this)">Pending</button>
+          <button class="filter-tab" onclick="setFilter('Completed', this)">Completed</button>
+          <button class="filter-tab" onclick="setFilter('Cancelled', this)">Cancelled</button>
+        </div>
+
+        <div class="table-wrap">
+          <table id="ordersTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Customer</th>
+                <th>Service</th>
+                <th>Contact</th>
+                <th>Notes</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
+          <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="icon">📭</div>
+            <h3>No Orders Found</h3>
+            <p>Orders placed from the store will appear here automatically.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- =============================================
+     JAVASCRIPT
+============================================= -->
+<script>
+  /* ---- Clock ---- */
+  function updateClock() {
+    document.getElementById('clockEl').textContent = new Date().toLocaleTimeString();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  /* ---- Sidebar toggle (mobile) ---- */
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  /* ---- Close sidebar on outside click (mobile) ---- */
+  document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth <= 900 && sidebar.classList.contains('open')) {
+      if (!sidebar.contains(e.target) && !e.target.closest('.topbar-ham')) {
+        sidebar.classList.remove('open');
+      }
+    }
+  });
+
+  /* ---- Section navigation ---- */
+  function showSection(section) {
+    if (section === 'orders') {
+      document.getElementById('pageTitle').textContent = '📋 Recent Orders';
+    } else if (section === 'stats') {
+      document.getElementById('pageTitle').textContent = '📊 Analytics';
+      alert('Analytics section coming soon!');
+    } else if (section === 'services') {
+      document.getElementById('pageTitle').textContent = '🛒 Services';
+      alert('Services management coming soon!');
+    }
+    // Highlight active link
+    document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    if (window.innerWidth <= 900) toggleSidebar();
+  }
+
+  /* ---- Data helpers ---- */
+  // Load all orders from localStorage
+  function getOrders() {
+    return JSON.parse(localStorage.getItem('astro_orders') || '[]');
+  }
+  // Save orders back
+  function saveOrders(orders) {
+    localStorage.setItem('astro_orders', JSON.stringify(orders));
+  }
+
+  /* ---- Current filter ---- */
+  let currentFilter = 'All';
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable();
+  }
+
+  /* ---- Status → badge class ---- */
+  function badgeClass(status) {
+    if (status === 'Completed') return 'badge-done';
+    if (status === 'Cancelled') return 'badge-cancel';
+    return 'badge-pending';
+  }
+
+  /* ---- Render table ---- */
+  function renderTable() {
+    let orders = getOrders();
+    const search = document.getElementById('searchInput').value.toLowerCase();
+
+    // Filter by status
+    if (currentFilter !== 'All') {
+      orders = orders.filter(o => o.status === currentFilter);
+    }
+    // Filter by search
+    if (search) {
+      orders = orders.filter(o =>
+        o.name.toLowerCase().includes(search)     ||
+        o.service.toLowerCase().includes(search)  ||
+        o.email.toLowerCase().includes(search)    ||
+        o.whatsapp.toLowerCase().includes(search)
+      );
+    }
+
+    const tbody = document.getElementById('ordersBody');
+    const empty = document.getElementById('emptyState');
+
+    if (orders.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = '';
+    } else {
+      empty.style.display = 'none';
+      tbody.innerHTML = orders.map((o, i) => `
+        <tr id="row-${o.id}">
+          <td style="color:var(--text-muted);font-family:'Orbitron',monospace;font-size:0.7rem;">#${String(i+1).padStart(3,'0')}</td>
+          <td>
+            <strong style="color:var(--text-main)">${escHtml(o.name)}</strong>
+          </td>
+          <td><span class="service-chip">${escHtml(o.service.split('—')[0].trim())}</span></td>
+          <td>
+            <div class="contact-info">
+              <a href="mailto:${escHtml(o.email)}">${escHtml(o.email)}</a>
+              <a href="https://wa.me/${o.whatsapp.replace(/\D/g,'')}" target="_blank">📱 ${escHtml(o.whatsapp)}</a>
+            </div>
+          </td>
+          <td style="color:var(--text-muted);font-size:0.85rem;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(o.notes||'')}">
+            ${o.notes ? escHtml(o.notes) : '<em style="opacity:0.4">None</em>'}
+          </td>
+          <td style="color:var(--text-muted);font-size:0.8rem;white-space:nowrap;">${escHtml(o.date)}</td>
+          <td><span class="badge ${badgeClass(o.status)}">${escHtml(o.status)}</span></td>
+          <td>
+            <div class="action-btns">
+              <button class="act-btn" onclick="cycleStatus(${o.id})" title="Change status">🔄</button>
+              <button class="act-btn del" onclick="deleteOrder(${o.id})" title="Delete">🗑</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    updateMetrics();
+  }
+
+  /* ---- Update metrics cards ---- */
+  function updateMetrics() {
+    const orders = getOrders();
+    const pending   = orders.filter(o => o.status === 'Pending').length;
+    const completed = orders.filter(o => o.status === 'Completed').length;
+
+    // Estimate revenue — extract first ₹ number from service string
+    let revenue = 0;
+    orders.forEach(o => {
+      const m = o.service.match(/₹(\d+)/);
+      if (m) revenue += parseInt(m[1]);
+    });
+
+    document.getElementById('totalOrdersVal').textContent = orders.length;
+    document.getElementById('pendingVal').textContent     = pending;
+    document.getElementById('completedVal').textContent   = completed;
+    document.getElementById('revenueVal').textContent     = `₹${revenue}`;
+  }
+
+  /* ---- Cycle order status: Pending → Completed → Cancelled → Pending ---- */
+  function cycleStatus(id) {
+    const orders = getOrders();
+    const o = orders.find(x => x.id === id);
+    if (!o) return;
+    const cycle = ['Pending','Completed','Cancelled'];
+    const next = cycle[(cycle.indexOf(o.status) + 1) % cycle.length];
+    o.status = next;
+    saveOrders(orders);
+    renderTable();
+  }
+
+  /* ---- Delete a single order ---- */
+  function deleteOrder(id) {
+    if (!confirm('Delete this order?')) return;
+    const orders = getOrders().filter(o => o.id !== id);
+    saveOrders(orders);
+    renderTable();
+  }
+
+  /* ---- Clear all orders ---- */
+  function clearAll() {
+    if (!confirm('⚠️ This will permanently delete ALL orders. Are you sure?')) return;
+    localStorage.removeItem('astro_orders');
+    renderTable();
+  }
+
+  /* ---- Export to CSV ---- */
+  function exportCSV() {
+    const orders = getOrders();
+    if (orders.length === 0) { alert('No orders to export.'); return; }
+    const header = ['ID','Name','Email','WhatsApp','Service','Notes','Date','Status'];
+    const rows = orders.map(o => [
+      o.id, o.name, o.email, o.whatsapp, o.service, o.notes||'', o.date, o.status
+    ].map(v => `"${String(v).replace(/"/g,'""')}"`));
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `astro_orders_${Date.now()}.csv`;
+    a.click();
+  }
+
+  /* ---- HTML escape to prevent XSS ---- */
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  /* ---- Seed demo data if localStorage is empty ---- */
+  function seedDemoData() {
+    const existing = getOrders();
+    if (existing.length > 0) return; // Don't overwrite real orders
+
+    const demo = [
+      { id:1001, date:'4/18/2026, 10:12:00 AM', name:'Ravi Kumar',   email:'ravi@email.com',   whatsapp:'+91 98765 43210',  service:'Instagram Account (1K Followers) — ₹50',  notes:'Indian account preferred', status:'Pending'   },
+      { id:1002, date:'4/18/2026, 09:55:00 AM', name:'Priya Sharma', email:'priya@email.com',  whatsapp:'+91 87654 32100',  service:'YouTube Account (1K Subscribers) — ₹120', notes:'',                        status:'Completed' },
+      { id:1003, date:'4/17/2026, 06:30:00 PM', name:'Arjun Mehta',  email:'arjun@email.in',   whatsapp:'+91 99001 23456',  service:'WhatsApp Account (Any Country) — ₹50',    notes:'Any country number',       status:'Pending'   },
+      { id:1004, date:'4/17/2026, 03:22:00 PM', name:'Sneha Reddy',  email:'sneha@email.in',   whatsapp:'+91 80001 23456',  service:'Telegram Account — ₹100',                 notes:'',                        status:'Completed' },
+      { id:1005, date:'4/16/2026, 11:00:00 AM', name:'Karan Singh',  email:'karan@email.in',   whatsapp:'+91 70001 23456',  service:'Mod APK Download — ₹15',                  notes:'BGMI mod APK',             status:'Cancelled' },
+    ];
+    saveOrders(demo);
+  }
+
+  /* ---- Initialize ---- */
+  seedDemoData();
+  renderTable();
+
+  // Auto-refresh every 10 seconds (picks up new orders from the store tab)
+  setInterval(renderTable, 10000);
+</script>
+
+</body>
+</html>
